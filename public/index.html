@@ -3,66 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Taxi Tips Dashboard</title>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Taxi Tips Dashboard</title>
+    <title>EV Taxi Tips</title>
     <link href="/output.css" rel="stylesheet">
     <script src="/socket.io/socket.io.js"></script>
 </head>
-<body class="bg-gray-900 text-white">
-    <!-- Tip Alert -->
-    <div id="tip-alert" class="hidden fixed top-4 right-4 z-50"></div>
+<body class="bg-black text-white min-h-screen">
+    <!-- Logo and Header -->
+    <header class="container mx-auto p-4 flex items-center justify-between">
+        <img src="/logo.png" alt="EV Taxi" class="w-24 h-auto">
+        <p class="text-ev-yellow text-xl font-medium text-center max-w-2xl">
+            Tips are greatly appreciated, thank you so much! ❤️
+        </p>
+    </header>
 
-    <div class="container mx-auto p-4">
-        <!-- Stats Overview -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            <div class="bg-gray-800 rounded-lg p-6 text-center">
-                <h3 class="text-lg font-semibold text-gray-400">Today's Tips</h3>
-                <p id="today-total" class="text-3xl font-bold mt-2">$0.00</p>
-            </div>
-            <div class="bg-gray-800 rounded-lg p-6 text-center">
-                <h3 class="text-lg font-semibold text-gray-400">Highest Tip</h3>
-                <p id="highest-tip" class="text-3xl font-bold mt-2">$0.00</p>
-            </div>
-            <div class="bg-gray-800 rounded-lg p-6 text-center">
-                <h3 class="text-lg font-semibold text-gray-400">Total Tips</h3>
-                <p id="total-tips" class="text-3xl font-bold mt-2">$0.00</p>
-            </div>
-        </div>
-
-        <!-- Main Content -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <!-- Recent Tips -->
-            <div class="bg-gray-800 rounded-lg p-6">
-                <h2 class="text-xl font-bold mb-4 flex items-center">
-                    <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                              d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z">
-                        </path>
-                    </svg>
-                    Recent Tips
-                </h2>
-                <div id="recent-tips" class="space-y-2 max-h-96 overflow-y-auto"></div>
-            </div>
-
-            <!-- Leaderboard -->
-            <div class="bg-gray-800 rounded-lg p-6">
-                <h2 class="text-xl font-bold mb-4 flex items-center">
-                    <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                              d="M16 4v12l-4-2-4 2V4M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z">
-                        </path>
-                    </svg>
-                    Top Tippers
-                </h2>
-                <div id="top-tippers" class="space-y-2"></div>
-            </div>
-        </div>
+    <!-- Tip Alert (Centered) -->
+    <div id="tip-alert" class="hidden fixed inset-0 flex items-center justify-center z-50 bg-black/50">
     </div>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 mt-8">
+        <!-- Top Tips Leaderboard -->
+        <div class="bg-gray-900/50 rounded-lg shadow-xl overflow-hidden">
+            <h2 class="text-2xl font-bold p-6 bg-gray-800/50 text-ev-yellow border-b border-ev-yellow/20">
+                Top Tips (All Time)
+            </h2>
+            <div id="top-tippers" class="p-6 space-y-3">
+                <!-- Leaderboard entries will be inserted here -->
+            </div>
+        </div>
+    </main>
 
     <script src="app.js"></script>
 </body>

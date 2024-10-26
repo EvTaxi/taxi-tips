@@ -3,31 +3,27 @@ const socket = io();
 
 // DOM Elements
 const tipAlert = document.getElementById('tip-alert');
-const recentTips = document.getElementById('recent-tips');
 const topTippers = document.getElementById('top-tippers');
-const todayTotal = document.getElementById('today-total');
-const highestTip = document.getElementById('highest-tip');
-const totalTips = document.getElementById('total-tips');
 
-// Animation configurations
+// Animation configurations based on tip amount
 const tipAnimations = {
     small: {
-        className: 'animate-bounce bg-green-500',
+        className: 'animate-bounce-custom bg-green-500',
         duration: 3000,
-        threshold: 5
+        threshold: 10
     },
     medium: {
-        className: 'animate-bounce-medium bg-blue-500',
+        className: 'animate-bounce-custom bg-blue-500',
         duration: 4000,
         threshold: 20
     },
     large: {
-        className: 'animate-bounce-large bg-purple-500',
+        className: 'animate-bounce-custom bg-purple-500',
         duration: 5000,
         threshold: 50
     },
     mega: {
-        className: 'animate-mega bg-yellow-500',
+        className: 'animate-bounce-custom bg-ev-yellow',
         duration: 6000,
         threshold: 100
     }
@@ -36,13 +32,18 @@ const tipAnimations = {
 // Socket event handlers
 socket.on('connect', () => {
     console.log('Connected to server');
-    fetchInitialData();
+});
+
+socket.on('init-leaderboard', (data) => {
+    updateLeaderboard(data);
 });
 
 socket.on('new-tip', (tip) => {
     showTipNotification(tip);
-    updateRecentTips(tip);
-    updateStats(tip);
+});
+
+socket.on('leaderboard-update', (data) => {
+    updateLeaderboard(data);
 });
 
 // Show tip notification
@@ -61,15 +62,17 @@ function showTipNotification(tip) {
     }
 
     tipAlert.innerHTML = `
-        <div class="${animation.className} p-4 rounded-lg shadow-lg">
-            <div class="flex items-center">
-                ${amount >= 100 ? '🌟 ' : ''}
-                ${amount >= 50 ? '✨ ' : ''}
-                <div>
-                    <h3 class="text-lg font-bold">New Tip!</h3>
-                    <p>${tip.name} tipped $${amount.toFixed(2)}</p>
-                    ${tip.message ? `<p class="text-sm mt-1">"${tip.message}"</p>` : ''}
-                </div>
+        <div class="max-w-md w-full ${animation.className} p-6 rounded-lg shadow-2xl">
+            <div class="text-center">
+                <h3 class="text-2xl font-bold mb-2">New Tip!</h3>
+                <p class="text-xl mb-2">${tip.name} tipped $${amount.toFixed(2)}</p>
+                ${tip.message ? `
+                    <p class="text-lg italic text-ev-yellow mt-2">
+                        "${tip.message}"
+                    </p>
+                ` : ''}
+                ${amount >= 100 ? '<div class="text-4xl mt-2">🌟</div>' : ''}
+                ${amount >= 50 ? '<div class="text-3xl mt-2">✨</div>' : ''}
             </div>
         </div>
     `;
@@ -81,23 +84,29 @@ function showTipNotification(tip) {
     }, animation.duration);
 }
 
-// Update recent tips list
-function updateRecentTips(tip) {
-    const tipElement = document.createElement('div');
-    tipElement.className = 'bg-gray-700 p-3 rounded-lg flex justify-between items-center animate-fade-in';
-    tipElement.innerHTML = `
-        <div>
-            <span class="font-semibold">${tip.name}</span>
-            <span class="text-sm text-gray-400">${formatTime(new Date(tip.timestamp))}</span>
+// Update leaderboard
+function updateLeaderboard(tippers) {
+    topTippers.innerHTML = tippers.map((tipper, index) => `
+        <div class="bg-gray-800/50 p-4 rounded-lg flex items-center justify-between transform transition-all hover:scale-102 border-l-4 border-ev-yellow">
+            <div class="flex items-center space-x-4">
+                ${index === 0 ? '<span class="text-2xl">👑</span>' : ''}
+                <div>
+                    <span class="font-bold text-lg">${tipper.name}</span>
+                    ${tipper.lastMessage ? `
+                        <p class="text-sm text-ev-yellow italic mt-1">
+                            "${tipper.lastMessage}"
+                        </p>
+                    ` : ''}
+                    <p class="text-xs text-gray-400">
+                        ${formatTime(new Date(tipper.lastTipTime))}
+                    </p>
+                </div>
+            </div>
+            <span class="text-xl font-bold text-ev-yellow">
+                $${tipper.total.toFixed(2)}
+            </span>
         </div>
-        <span class="text-green-400 font-bold">$${parseFloat(tip.amount).toFixed(2)}</span>
-    `;
-    
-    recentTips.insertBefore(tipElement, recentTips.firstChild);
-    
-    while (recentTips.children.length > 10) {
-        recentTips.removeChild(recentTips.lastChild);
-    }
+    `).join('');
 }
 
 // Format timestamp
@@ -109,47 +118,13 @@ function formatTime(date) {
     });
 }
 
-// Fetch initial data
-async function fetchInitialData() {
-    try {
-        // Fetch daily stats
-        const statsResponse = await fetch('/api/daily-stats');
-        const stats = await statsResponse.json();
-        
-        todayTotal.textContent = `$${stats.totalAmount.toFixed(2)}`;
-        highestTip.textContent = `$${stats.highestTip.toFixed(2)}`;
+// Add some visual feedback when the connection is lost/restored
+socket.on('disconnect', () => {
+    console.log('Disconnected from server');
+    document.body.classList.add('opacity-75');
+});
 
-        // Fetch recent tips
-        const recentResponse = await fetch('/api/recent-tips');
-        const recentTipsList = await recentResponse.json();
-        recentTipsList.forEach(tip => updateRecentTips(tip));
-
-        // Fetch top tippers
-        const topResponse = await fetch('/api/top-tippers');
-        const topTippersList = await topResponse.json();
-        
-        topTippers.innerHTML = topTippersList
-            .map((tipper, index) => `
-                <div class="bg-gray-700 p-3 rounded-lg flex justify-between items-center">
-                    <div class="flex items-center">
-                        ${index === 0 ? '👑 ' : ''}
-                        <span class="font-semibold">${tipper.name}</span>
-                    </div>
-                    <span class="text-green-400 font-bold">$${tipper.total.toFixed(2)}</span>
-                </div>
-            `)
-            .join('');
-
-        // Calculate total from top tippers
-        const total = topTippersList.reduce((sum, tipper) => sum + tipper.total, 0);
-        totalTips.textContent = `$${total.toFixed(2)}`;
-
-    } catch (error) {
-        console.error('Failed to fetch initial data:', error);
-    }
-}
-
-// Initialize
-document.addEventListener('DOMContentLoaded', () => {
-    fetchInitialData();
+socket.on('reconnect', () => {
+    console.log('Reconnected to server');
+    document.body.classList.remove('opacity-75');
 });

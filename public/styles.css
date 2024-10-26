@@ -2,41 +2,74 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Custom styles */
+/* Custom Properties */
+:root {
+    --ev-yellow: #FFD700;
+    --ev-black: #000000;
+}
+
+/* Custom Animations */
+@keyframes slideUp {
+    0% {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes pulse-yellow {
+    0%, 100% {
+        box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.4);
+    }
+    50% {
+        box-shadow: 0 0 0 20px rgba(255, 215, 0, 0);
+    }
+}
+
+/* Custom Classes */
 .tip-notification {
-    @apply fixed top-4 right-4 max-w-sm w-full z-50;
+    animation: slideUp 0.3s ease-out;
 }
 
-.tip-btn {
-    @apply transition-all duration-200 hover:scale-105;
+.leaderboard-entry {
+    transition: all 0.2s ease;
 }
 
-.tip-btn.selected {
-    @apply ring-2 ring-blue-500;
+.leaderboard-entry:hover {
+    transform: translateX(5px);
+    background-color: rgba(255, 215, 0, 0.1);
 }
 
-#card-container {
-    @apply min-h-[100px] bg-gray-700 rounded-lg p-4;
+/* Mega Tip Animation */
+.mega-tip-alert {
+    animation: pulse-yellow 2s infinite;
 }
 
-#card-container.SquarePaymentFlow {
-    @apply bg-white;
+/* Responsive Design */
+@media (max-width: 640px) {
+    .container {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
 }
 
-/* Square iframe modifications */
-#card-container iframe {
-    @apply min-h-[40px];
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+    width: 8px;
 }
 
-/* Custom animations */
-.animate-bounce-medium {
-    animation: bounce-medium 1s infinite;
+::-webkit-scrollbar-track {
+    background: var(--ev-black);
 }
 
-.animate-bounce-large {
-    animation: bounce-large 1.5s infinite;
+::-webkit-scrollbar-thumb {
+    background: var(--ev-yellow);
+    border-radius: 4px;
 }
 
-.animate-mega {
-    animation: mega 2s ease-in-out;
+::-webkit-scrollbar-thumb:hover {
+    background: #ffd900;
 }

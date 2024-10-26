@@ -2,25 +2,6 @@ let payments;
 let card;
 let selectedAmount = 0;
 
-// Function to handle amount selection
-function selectAmount(amount) {
-    selectedAmount = amount;
-    document.getElementById('custom-amount').value = amount;
-    highlightSelectedAmount(amount);
-}
-
-// Highlight selected amount button
-function highlightSelectedAmount(amount) {
-    document.querySelectorAll('.tip-btn').forEach(btn => {
-        const btnAmount = parseInt(btn.querySelector('.text-xl').textContent.replace('$', ''));
-        if (btnAmount === amount) {
-            btn.classList.add('ring-2', 'ring-blue-500');
-        } else {
-            btn.classList.remove('ring-2', 'ring-blue-500');
-        }
-    });
-}
-
 // Initialize Square
 async function initializeSquare() {
     try {
@@ -33,10 +14,11 @@ async function initializeSquare() {
         await card.attach('#card-container');
 
         const cardButton = document.getElementById('card-button');
+        
         cardButton.addEventListener('click', async () => {
             const amount = parseFloat(document.getElementById('custom-amount').value || '0');
             if (!amount || amount < 1) {
-                alert('Please enter a valid tip amount');
+                showError('Please enter a valid tip amount');
                 return;
             }
 
@@ -50,7 +32,7 @@ async function initializeSquare() {
                 }
             } catch (e) {
                 console.error(e);
-                alert('Payment failed. Please try again.');
+                showError('Payment failed. Please try again.');
             } finally {
                 cardButton.disabled = false;
                 cardButton.textContent = 'Pay Tip';
@@ -58,13 +40,14 @@ async function initializeSquare() {
         });
     } catch (e) {
         console.error('Square initialization error:', e);
-        alert('Could not load payment form. Please try again.');
+        showError('Could not load payment form. Please try again.');
     }
 }
 
-// Process the payment
+// Process payment
 async function processPayment(token) {
     const amount = parseFloat(document.getElementById('custom-amount').value);
+    const name = document.getElementById('tipper-name').value || 'Anonymous';
     const message = document.getElementById('message').value;
 
     try {
@@ -76,6 +59,7 @@ async function processPayment(token) {
             body: JSON.stringify({
                 sourceId: token,
                 amount: amount,
+                name: name,
                 message: message
             })
         });
@@ -89,7 +73,7 @@ async function processPayment(token) {
         }
     } catch (e) {
         console.error(e);
-        alert('Payment failed. Please try again.');
+        showError('Payment failed. Please try again.');
     }
 }
 
@@ -109,24 +93,51 @@ function showSuccess() {
     }, 3000);
 }
 
-// Reset form after successful payment
+// Show error message
+function showError(message) {
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'fixed top-4 right-4 bg-red-500 p-4 rounded-lg shadow-lg';
+    errorDiv.innerHTML = `
+        <p class="font-bold">Error</p>
+        <p>${message}</p>
+    `;
+    document.body.appendChild(errorDiv);
+    
+    setTimeout(() => {
+        errorDiv.remove();
+    }, 3000);
+}
+
+// Handle tip button selection
+function selectAmount(amount) {
+    selectedAmount = amount;
+    document.getElementById('custom-amount').value = amount;
+    highlightSelectedAmount(amount);
+}
+
+// Highlight selected amount button
+function highlightSelectedAmount(amount) {
+    document.querySelectorAll('.tip-btn').forEach(btn => {
+        const btnAmount = parseInt(btn.querySelector('.text-xl').textContent.replace('$', ''));
+        if (btnAmount === amount) {
+            btn.classList.add('ring-2', 'ring-ev-yellow');
+        } else {
+            btn.classList.remove('ring-2', 'ring-ev-yellow');
+        }
+    });
+}
+
+// Reset form
 function resetForm() {
     document.getElementById('custom-amount').value = '';
+    document.getElementById('tipper-name').value = '';
     document.getElementById('message').value = '';
     selectedAmount = 0;
     document.querySelectorAll('.tip-btn').forEach(btn => {
-        btn.classList.remove('ring-2', 'ring-blue-500');
+        btn.classList.remove('ring-2', 'ring-ev-yellow');
     });
     card.clear();
 }
-
-// Handle custom amount input
-document.getElementById('custom-amount').addEventListener('input', (e) => {
-    selectedAmount = parseFloat(e.target.value) || 0;
-    document.querySelectorAll('.tip-btn').forEach(btn => {
-        btn.classList.remove('ring-2', 'ring-blue-500');
-    });
-});
 
 // Initialize on page load
 window.addEventListener('load', initializeSquare);
