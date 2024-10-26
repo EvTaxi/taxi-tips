@@ -9,10 +9,29 @@ const todayTotal = document.getElementById('today-total');
 const highestTip = document.getElementById('highest-tip');
 const totalTips = document.getElementById('total-tips');
 
-// Track stats
-let dailyTotal = 0;
-let highestTipAmount = 0;
-let totalAmount = 0;
+// Animation configurations
+const tipAnimations = {
+    small: {
+        className: 'animate-bounce bg-green-500',
+        duration: 3000,
+        threshold: 5
+    },
+    medium: {
+        className: 'animate-bounce-medium bg-blue-500',
+        duration: 4000,
+        threshold: 20
+    },
+    large: {
+        className: 'animate-bounce-large bg-purple-500',
+        duration: 5000,
+        threshold: 50
+    },
+    mega: {
+        className: 'animate-mega bg-yellow-500',
+        duration: 6000,
+        threshold: 100
+    }
+};
 
 // Socket event handlers
 socket.on('connect', () => {
@@ -24,28 +43,34 @@ socket.on('new-tip', (tip) => {
     showTipNotification(tip);
     updateRecentTips(tip);
     updateStats(tip);
-    playTipSound();
 });
 
 // Show tip notification
 function showTipNotification(tip) {
-    const tipAmount = parseFloat(tip.amount);
-    let animationClass = 'animate-bounce';
-    let bgColor = 'bg-green-500';
+    const amount = parseFloat(tip.amount);
+    let animation;
     
-    if (tipAmount >= 20) {
-        animationClass = 'animate-bounce-gold';
-        bgColor = 'bg-yellow-500';
-    } else if (tipAmount >= 10) {
-        animationClass = 'animate-bounce-silver';
-        bgColor = 'bg-blue-500';
+    if (amount >= tipAnimations.mega.threshold) {
+        animation = tipAnimations.mega;
+    } else if (amount >= tipAnimations.large.threshold) {
+        animation = tipAnimations.large;
+    } else if (amount >= tipAnimations.medium.threshold) {
+        animation = tipAnimations.medium;
+    } else {
+        animation = tipAnimations.small;
     }
 
     tipAlert.innerHTML = `
-        <div class="${bgColor} p-4 rounded-lg shadow-lg ${animationClass}">
-            <h3 class="text-lg font-bold">New Tip!</h3>
-            <p>${tip.name} tipped $${tipAmount.toFixed(2)}</p>
-            ${tip.message ? `<p class="text-sm">"${tip.message}"</p>` : ''}
+        <div class="${animation.className} p-4 rounded-lg shadow-lg">
+            <div class="flex items-center">
+                ${amount >= 100 ? '🌟 ' : ''}
+                ${amount >= 50 ? '✨ ' : ''}
+                <div>
+                    <h3 class="text-lg font-bold">New Tip!</h3>
+                    <p>${tip.name} tipped $${amount.toFixed(2)}</p>
+                    ${tip.message ? `<p class="text-sm mt-1">"${tip.message}"</p>` : ''}
+                </div>
+            </div>
         </div>
     `;
     
@@ -53,7 +78,7 @@ function showTipNotification(tip) {
     
     setTimeout(() => {
         tipAlert.classList.add('hidden');
-    }, 3000);
+    }, animation.duration);
 }
 
 // Update recent tips list
@@ -75,18 +100,6 @@ function updateRecentTips(tip) {
     }
 }
 
-// Update dashboard statistics
-function updateStats(tip) {
-    const amount = parseFloat(tip.amount);
-    dailyTotal += amount;
-    totalAmount += amount;
-    highestTipAmount = Math.max(highestTipAmount, amount);
-    
-    todayTotal.textContent = `$${dailyTotal.toFixed(2)}`;
-    highestTip.textContent = `$${highestTipAmount.toFixed(2)}`;
-    totalTips.textContent = `$${totalAmount.toFixed(2)}`;
-}
-
 // Format timestamp
 function formatTime(date) {
     return date.toLocaleTimeString('en-US', {
@@ -99,6 +112,13 @@ function formatTime(date) {
 // Fetch initial data
 async function fetchInitialData() {
     try {
+        // Fetch daily stats
+        const statsResponse = await fetch('/api/daily-stats');
+        const stats = await statsResponse.json();
+        
+        todayTotal.textContent = `$${stats.totalAmount.toFixed(2)}`;
+        highestTip.textContent = `$${stats.highestTip.toFixed(2)}`;
+
         // Fetch recent tips
         const recentResponse = await fetch('/api/recent-tips');
         const recentTipsList = await recentResponse.json();
@@ -120,44 +140,16 @@ async function fetchInitialData() {
             `)
             .join('');
 
-        // Calculate totals
-        dailyTotal = recentTipsList
-            .filter(tip => isToday(new Date(tip.timestamp)))
-            .reduce((sum, tip) => sum + parseFloat(tip.amount), 0);
-        
-        highestTipAmount = Math.max(...recentTipsList.map(tip => parseFloat(tip.amount)));
-        totalAmount = topTippersList.reduce((sum, tipper) => sum + tipper.total, 0);
+        // Calculate total from top tippers
+        const total = topTippersList.reduce((sum, tipper) => sum + tipper.total, 0);
+        totalTips.textContent = `$${total.toFixed(2)}`;
 
-        // Update displays
-        todayTotal.textContent = `$${dailyTotal.toFixed(2)}`;
-        highestTip.textContent = `$${highestTipAmount.toFixed(2)}`;
-        totalTips.textContent = `$${totalAmount.toFixed(2)}`;
     } catch (error) {
         console.error('Failed to fetch initial data:', error);
     }
 }
 
-// Check if date is today
-function isToday(date) {
-    const today = new Date();
-    return date.getDate() === today.getDate() &&
-           date.getMonth() === today.getMonth() &&
-           date.getFullYear() === today.getFullYear();
-}
-
-// Reset daily total at midnight
-function resetDailyTotal() {
-    const now = new Date();
-    const midnight = new Date(now);
-    midnight.setHours(24, 0, 0, 0);
-    const timeUntilMidnight = midnight - now;
-    
-    setTimeout(() => {
-        dailyTotal = 0;
-        todayTotal.textContent = '$0';
-        resetDailyTotal();
-    }, timeUntilMidnight);
-}
-
 // Initialize
-resetDailyTotal();
+document.addEventListener('DOMContentLoaded', () => {
+    fetchInitialData();
+});
