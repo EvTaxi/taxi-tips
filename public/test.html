@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Tips</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white p-8">
+    <div class="max-w-md mx-auto bg-gray-800 p-6 rounded-lg shadow-xl">
+        <h2 class="text-xl font-bold mb-4">Send Test Tip</h2>
+        <form id="test-form" class="space-y-4">
+            <div>
+                <label class="block mb-2">Customer Name</label>
+                <input type="text" id="name" value="Test Customer" class="w-full p-2 rounded bg-gray-700 text-white">
+            </div>
+            <div>
+                <label class="block mb-2">Tip Amount ($)</label>
+                <input type="number" id="amount" value="10" min="1" class="w-full p-2 rounded bg-gray-700 text-white">
+            </div>
+            <div>
+                <label class="block mb-2">Message (optional)</label>
+                <input type="text" id="message" placeholder="Great ride!" class="w-full p-2 rounded bg-gray-700 text-white">
+            </div>
+            <button type="submit" class="w-full bg-blue-500 p-2 rounded hover:bg-blue-600">
+                Send Test Tip
+            </button>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('test-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const tipData = {
+                type: 'payment.created',
+                data: {
+                    payment: {
+                        amount_money: {
+                            amount: parseFloat(document.getElementById('amount').value) * 100
+                        },
+                        customer: {
+                            given_name: document.getElementById('name').value
+                        },
+                        note: document.getElementById('message').value
+                    }
+                }
+            };
+
+            try {
+                const response = await fetch('/webhook/square', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(tipData)
+                });
+
+                if (response.ok) {
+                    alert('Test tip sent successfully!');
+                } else {
+                    alert('Error sending test tip');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error sending test tip');
+            }
+        });
+    </script>
+</body>
+</html>

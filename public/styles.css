@@ -1,1 +1,101 @@
-/* Dashboard styles */ 
+/* Custom Animations */
+@keyframes fade-in {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes bounce-gold {
+    0%, 100% { transform: translateY(0); filter: brightness(1); }
+    50% { transform: translateY(-25px); filter: brightness(1.2); }
+}
+
+@keyframes bounce-silver {
+    0%, 100% { transform: translateY(0); filter: brightness(1); }
+    50% { transform: translateY(-15px); filter: brightness(1.1); }
+}
+
+/* Utility Classes */
+.animate-fade-in {
+    animation: fade-in 0.5s ease-out;
+}
+
+.animate-bounce-gold {
+    animation: bounce-gold 1s ease-in-out;
+}
+
+.animate-bounce-silver {
+    animation: bounce-silver 0.8s ease-in-out;
+}
+
+/* Dashboard Styles */
+.dashboard-card {
+    background: rgba(31, 41, 55, 0.8);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Scrollbar Styles */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #1f2937;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #4b5563;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #6b7280;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .container {
+        padding: 0.5rem;
+    }
+    
+    .grid {
+        gap: 0.5rem;
+    }
+}
+
+/* Tip Alert Styles */
+#tip-alert {
+    max-width: 90vw;
+    width: 400px;
+}
+
+/* Statistics Cards */
+.stat-card {
+    transition: transform 0.2s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+}
+
+/* Leaderboard Styles */
+.leaderboard-entry {
+    transition: all 0.2s ease;
+}
+
+.leaderboard-entry:hover {
+    transform: scale(1.02);
+    background: rgba(55, 65, 81, 0.9);
+}
+
+/* Payment Modal Styles */
+.modal-backdrop {
+    backdrop-filter: blur(4px);
+}
+
+.modal-content {
+    max-height: 90vh;
+    overflow-y: auto;
+}
